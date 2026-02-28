@@ -15,6 +15,9 @@ class SettingItems(str, enum.Enum):
     WINDOW_WIDTH = "window_width"
     WINDOW_HEIGHT = "window_height"
     SIDEBAR_WIDTH = "sidebar_width"
+    SORTING_MODE = "sorting_mode"
+    SORTING_DIRECTION = "sorting_direction"
+    THUMB_SIZE = "thumb_size"
 
 
 class ShowFilepathOption(int, enum.Enum):

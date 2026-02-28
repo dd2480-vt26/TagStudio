@@ -665,22 +665,52 @@ class QtDriver(DriverMixin, QObject):
         self.main_window.search_field.returnPressed.connect(_update_browsing_state)
 
         # Sorting Dropdowns
+        sorting_mode = self.browsing_history.current.sorting_mode
+        cached_sorting_mode = self.cached_values.value(SettingItems.SORTING_MODE, type=str)
+        if isinstance(cached_sorting_mode, str) and cached_sorting_mode != "":
+            sorting_mode = SortingModeEnum(cached_sorting_mode)
+
         self.main_window.sorting_mode_combobox.setCurrentIndex(
-            list(SortingModeEnum).index(self.browsing_history.current.sorting_mode)
+            list(SortingModeEnum).index(sorting_mode)
         )
         self.main_window.sorting_mode_combobox.currentIndexChanged.connect(
             self.sorting_mode_callback
         )
+
+        # Sorting Direction Dropdown
+        sorting_direction = self.browsing_history.current.ascending
+        cached_sorting_direction = self.cached_values.value(
+            SettingItems.SORTING_DIRECTION, type=bool
+        )
+        if isinstance(cached_sorting_direction, bool):
+            sorting_direction = cached_sorting_direction
+
+        sorting_direction_index = self.main_window.sorting_direction_combobox.findData(
+            sorting_direction
+        )
+        if sorting_direction_index != -1:
+            self.main_window.sorting_direction_combobox.setCurrentIndex(sorting_direction_index)
 
         self.main_window.sorting_direction_combobox.currentIndexChanged.connect(
             self.sorting_direction_callback
         )
 
         # Thumbnail Size ComboBox
-        self.main_window.thumb_size_combobox.setCurrentIndex(2)  # Default: Medium
+        thumbnail_size = self.main_window.thumb_size
+        cached_thumbnail_size = self.cached_values.value(SettingItems.THUMB_SIZE, type=int)
+        if isinstance(cached_thumbnail_size, int):
+            thumbnail_size = cached_thumbnail_size
+
+        thumbnail_size_index = self.main_window.thumb_size_combobox.findData(thumbnail_size)
+        if thumbnail_size_index != -1:
+            self.main_window.thumb_size_combobox.setCurrentIndex(thumbnail_size_index)
+        else:
+            self.main_window.thumb_size_combobox.setCurrentIndex(2)  # Default: Medium
+
         self.main_window.thumb_size_combobox.currentIndexChanged.connect(
             lambda: self.thumb_size_callback(self.main_window.thumb_size_combobox.currentIndex())
         )
+        self.thumb_size_callback(self.main_window.thumb_size_combobox.currentIndex())
 
         # Exclude hidden entries checkbox
         self.main_window.show_hidden_entries_checkbox.setChecked(False)  # Default: No
@@ -739,20 +769,28 @@ class QtDriver(DriverMixin, QObject):
     def handle_sigterm(self):
         self.shutdown()
 
-    def cache_window_dimensions(self):
+    def cache_ui_state(self):
         window_width = self.main_window.width()
         window_height = self.main_window.height()
         self.cached_values.setValue(SettingItems.WINDOW_WIDTH, window_width)
         self.cached_values.setValue(SettingItems.WINDOW_HEIGHT, window_height)
-        self.cached_values.sync()
 
         sidebar_width = self.main_window.preview_panel.width()
         self.cached_values.setValue(SettingItems.SIDEBAR_WIDTH, sidebar_width)
+
+        sorting_mode = self.main_window.sorting_mode
+        self.cached_values.setValue(SettingItems.SORTING_MODE, sorting_mode.value)
+
+        sorting_direction = self.main_window.sorting_direction
+        self.cached_values.setValue(SettingItems.SORTING_DIRECTION, sorting_direction)
+
+        thumbnail_size = self.main_window.thumb_size
+        self.cached_values.setValue(SettingItems.THUMB_SIZE, thumbnail_size)
         self.cached_values.sync()
 
     def shutdown(self):
         """Save Library on Application Exit."""
-        self.cache_window_dimensions()
+        self.cache_ui_state()
         self.close_library(is_shutdown=True)
         logger.info("[SHUTDOWN] Ending Thumbnail Threads...")
         for _ in self.thumb_threads:
@@ -789,7 +827,6 @@ class QtDriver(DriverMixin, QObject):
 
         self.thumb_job_queue.queue.clear()
         if is_shutdown:
-            # Save sorting options TODO
             return
 
         self.main_window.setWindowTitle(self.base_title)
