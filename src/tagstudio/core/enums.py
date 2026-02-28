@@ -12,6 +12,9 @@ class SettingItems(str, enum.Enum):
 
     LAST_LIBRARY = "last_library"
     LIBS_LIST = "libs_list"
+    WINDOW_WIDTH = "window_width"
+    WINDOW_HEIGHT = "window_height"
+    SIDEBAR_WIDTH = "sidebar_width"
 
 
 class ShowFilepathOption(int, enum.Enum):

@@ -696,6 +696,13 @@ class QtDriver(DriverMixin, QObject):
         # or implementing some clever loading tricks.
         self.main_window.show()
         self.main_window.activateWindow()
+
+        # Restore sidebar width from cache
+        sidebar_width = self.cached_values.value(SettingItems.SIDEBAR_WIDTH, type=int)
+        if isinstance(sidebar_width, int):
+            splitter = self.main_window.content_splitter
+            splitter.setSizes([splitter.width() - sidebar_width, sidebar_width])
+
         self.main_window.toggle_landing_page(enabled=True)
 
         self.main_window.pagination.index.connect(lambda i: self.page_move(i, absolute=True))
@@ -732,8 +739,20 @@ class QtDriver(DriverMixin, QObject):
     def handle_sigterm(self):
         self.shutdown()
 
+    def cache_window_dimensions(self):
+        window_width = self.main_window.width()
+        window_height = self.main_window.height()
+        self.cached_values.setValue(SettingItems.WINDOW_WIDTH, window_width)
+        self.cached_values.setValue(SettingItems.WINDOW_HEIGHT, window_height)
+        self.cached_values.sync()
+
+        sidebar_width = self.main_window.preview_panel.width()
+        self.cached_values.setValue(SettingItems.SIDEBAR_WIDTH, sidebar_width)
+        self.cached_values.sync()
+
     def shutdown(self):
         """Save Library on Application Exit."""
+        self.cache_window_dimensions()
         self.close_library(is_shutdown=True)
         logger.info("[SHUTDOWN] Ending Thumbnail Threads...")
         for _ in self.thumb_threads:
@@ -770,7 +789,7 @@ class QtDriver(DriverMixin, QObject):
 
         self.thumb_job_queue.queue.clear()
         if is_shutdown:
-            # no need to do other things on shutdown
+            # Save sorting options TODO
             return
 
         self.main_window.setWindowTitle(self.base_title)

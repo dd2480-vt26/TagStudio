@@ -35,7 +35,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from tagstudio.core.enums import ShowFilepathOption
+from tagstudio.core.enums import SettingItems, ShowFilepathOption
 from tagstudio.core.library.alchemy.enums import SortingModeEnum, TagColorEnum
 from tagstudio.qt.controllers.preview_panel_controller import PreviewPanel
 from tagstudio.qt.helpers.color_overlay import theme_fg_overlay
@@ -490,7 +490,13 @@ class MainWindow(QMainWindow):
 
         if not self.objectName():
             self.setObjectName("MainWindow")
-        self.resize(1316, 740)
+
+        # Restore window dimensions from cache
+        settings = driver.cached_values
+        window_width = settings.value(SettingItems.WINDOW_WIDTH, type=int)
+        window_height = settings.value(SettingItems.WINDOW_HEIGHT, type=int)
+        if isinstance(window_width, int) and isinstance(window_height, int):
+            self.resize(window_width, window_height)
 
         self.setup_menu_bar()
 
