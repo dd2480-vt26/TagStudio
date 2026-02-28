@@ -667,8 +667,9 @@ class QtDriver(DriverMixin, QObject):
         # Sorting Dropdowns
         sorting_mode = self.browsing_history.current.sorting_mode
         cached_sorting_mode = self.cached_values.value(SettingItems.SORTING_MODE, type=str)
-        if isinstance(cached_sorting_mode, str) and cached_sorting_mode != "":
-            sorting_mode = SortingModeEnum(cached_sorting_mode)
+        if isinstance(cached_sorting_mode, str) and cached_sorting_mode:
+            with contextlib.suppress(ValueError):
+                sorting_mode = SortingModeEnum(cached_sorting_mode)
 
         self.main_window.sorting_mode_combobox.setCurrentIndex(
             list(SortingModeEnum).index(sorting_mode)
@@ -729,7 +730,7 @@ class QtDriver(DriverMixin, QObject):
 
         # Restore sidebar width from cache
         sidebar_width = self.cached_values.value(SettingItems.SIDEBAR_WIDTH, type=int)
-        if isinstance(sidebar_width, int):
+        if isinstance(sidebar_width, int) and sidebar_width > 0:
             splitter = self.main_window.content_splitter
             splitter.setSizes([splitter.width() - sidebar_width, sidebar_width])
 

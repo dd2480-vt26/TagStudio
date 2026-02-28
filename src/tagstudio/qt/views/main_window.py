@@ -495,8 +495,15 @@ class MainWindow(QMainWindow):
         settings = driver.cached_values
         window_width = settings.value(SettingItems.WINDOW_WIDTH, type=int)
         window_height = settings.value(SettingItems.WINDOW_HEIGHT, type=int)
-        if isinstance(window_width, int) and isinstance(window_height, int):
+        if (
+            isinstance(window_width, int)
+            and isinstance(window_height, int)
+            and window_width > 0
+            and window_height > 0
+        ):
             self.resize(window_width, window_height)
+        else:
+            self.resize(1316, 740)  # Default
 
         self.setup_menu_bar()
 
