@@ -1,9 +1,10 @@
-import pytest
 from unittest.mock import patch
-from tagstudio.qt.ts_qt import QtDriver
+
 from pytestqt.qtbot import QtBot
-from tagstudio.qt.views.main_window import MainWindow
+
 from tagstudio.core.enums import SettingItems
+from tagstudio.qt.ts_qt import QtDriver
+from tagstudio.qt.views.main_window import MainWindow
 
 
 def test_window_size_is_saved_on_close(qtbot: QtBot, qt_driver: QtDriver):
@@ -28,11 +29,5 @@ def test_window_size_is_saved_on_close(qtbot: QtBot, qt_driver: QtDriver):
     new_window = MainWindow(qt_driver)
     qtbot.addWidget(new_window)
 
-
     assert new_window.width() == new_width
     assert new_window.height() == new_height
-
-
-    
-
-
